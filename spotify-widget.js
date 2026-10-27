@@ -53,12 +53,22 @@ async function updateNowPlaying() {
       nowPlaying.append(cover);
     }
     const copy = node("div", "spotify-copy");
+    const title = node("p", "spotify-title");
+    const titleText = node("span", "spotify-title-text", data.title);
+    title.append(titleText);
     copy.append(
       node("p", "spotify-state", data.status === "playing" ? "Now playing" : "Paused"),
-      node("p", "spotify-title", data.title),
+      title,
       node("p", "spotify-artist", data.artist),
     );
     nowPlaying.append(copy);
+    requestAnimationFrame(() => {
+      const overflow = titleText.scrollWidth - title.clientWidth;
+      if (overflow > 4) {
+        title.style.setProperty("--title-overflow", `${overflow}px`);
+        title.classList.add("is-overflowing");
+      }
+    });
     if (data.url) {
       const link = node("a", "spotify-open", "Open in Spotify ↗");
       link.href = data.url;

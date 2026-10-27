@@ -172,7 +172,7 @@ li+li { margin-top: 4px; }
 .page{padding-bottom:160px}
 .spotify-now{
   position:fixed;right:16px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
-  width:min(390px,calc(100vw - 32px));margin:0;
+  width:min(560px,calc(100vw - 32px));margin:0;
   display:grid;grid-template-columns:minmax(0,1fr) 122px;align-items:center;gap:14px;
   padding:8px 14px;border:1px solid color-mix(in srgb,var(--line) 80%,transparent);
   border-radius:13px;background:color-mix(in srgb,var(--surface) 91%,transparent);
@@ -183,7 +183,12 @@ li+li { margin-top: 4px; }
 .spotify-cover{width:54px;height:54px;border-radius:7px}
 .spotify-copy{overflow:hidden}
 .spotify-state{font-size:10px}
-.spotify-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.spotify-title{overflow:hidden;white-space:nowrap;font-size:14px}
+.spotify-title-text{display:inline-block;white-space:nowrap}
+@media(prefers-reduced-motion:no-preference){
+  .spotify-title.is-overflowing .spotify-title-text{animation:spotify-title-scroll 8s ease-in-out infinite alternate}
+  @keyframes spotify-title-scroll{0%,14%{transform:translateX(0)}86%,100%{transform:translateX(calc(-1 * var(--title-overflow)))} }
+}
 .spotify-artist{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
 .spotify-open{font-size:11px}
 .spotify-message{grid-column:1/-1}
