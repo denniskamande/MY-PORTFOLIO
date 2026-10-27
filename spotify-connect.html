@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Connect Spotify | Chege Dennis Kamande</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="./spotify-connect.js" defer></script>
+  </head>
+  <body>
+    <main class="page connect-page">
+      <p><a href="/">← Back to portfolio</a></p>
+      <header class="intro">
+        <p class="subname">Spotify setup</p>
+        <h1>Connect your account</h1>
+        <p class="summary">Sign in to Spotify and approve read-only access to playback status and recently played tracks. Your Spotify password is entered only on Spotify.</p>
+        <button class="copy-token" id="connect-spotify" type="button">Continue with Spotify</button>
+        <p class="muted" id="auth-status" role="status" aria-live="polite">After approval, copy the refresh token into Vercel’s private environment settings.</p>
+        <div id="token-result" hidden>
+          <label for="refresh-token">Refresh token</label>
+          <textarea class="token-output" id="refresh-token" readonly aria-label="Spotify refresh token"></textarea>
+          <button class="copy-token" id="copy-token" type="button">Copy refresh token</button>
+          <p class="muted">In Vercel, add an environment variable named <code>SPOTIFY_REFRESH_TOKEN</code> with this value, then redeploy. Keep this token private and close this page after copying it. Spotify may require you to reconnect after the token expires or changes.</p>
+        </div>
+      </header>
+    </main>
+  </body>
+</html>
