@@ -197,7 +197,7 @@ li+li { margin-top: 4px; }
   border:0;border-left:1px solid var(--line);font-size:12px;
 }
 .recently-played{
-  position:absolute;left:0;right:0;bottom:calc(100% + 10px);max-height:min(54vh,470px);
+  position:absolute;left:0;right:0;bottom:calc(100% + 10px);height:calc(100vh - 116px);height:calc(100dvh - 116px);max-height:none;
   overflow:auto;margin:0;padding:12px 16px;border:1px solid var(--line);border-radius:14px;
   background:color-mix(in srgb,var(--surface) 96%,transparent);
   box-shadow:0 10px 34px rgba(28,36,30,.17);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
@@ -219,7 +219,7 @@ li+li { margin-top: 4px; }
   .spotify-title{font-size:13px}
   .spotify-artist{font-size:11px}
   .recent-toggle{grid-column:2;grid-row:1;min-width:0;min-height:46px;padding-left:10px;font-size:11px}
-  .recently-played{bottom:calc(100% + 8px);max-height:48vh;padding:10px 12px;border-radius:12px}
+  .recently-played{bottom:calc(100% + 8px);height:auto;max-height:48vh;padding:10px 12px;border-radius:12px}
   .recent-track{grid-template-columns:36px minmax(0,1fr) auto;gap:8px;padding:8px 0}
   .recent-cover{width:36px;height:36px}
   .recent-time{font-size:10px}
