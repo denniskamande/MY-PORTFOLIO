@@ -97,11 +97,12 @@ section>p { margin: 0; color: var(--text); }
 section>p+p { margin-top: 11px; }
 .entries { display: block; }
 .entry {
-  position: relative; padding: 8px 0 8px 18px;
-  border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  position: relative; padding: 10px 0 14px;
+  border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none;
 }
-.entry:before { content: "•"; position: absolute; left: 1px; top: 8px; color: var(--muted); }
-.entry:first-child,.entry:last-child { padding-top: 8px; border: 0; }
+.entry:before { content: none; }
+.entry:first-child { padding-top: 8px; }
+.entry:last-child { padding-bottom: 8px; border-bottom: 0; }
 .time { display: block; margin: 0; color: var(--muted); font-size: 13px; }
 .time:after { content: none; }
 .entry h3 { display: block; margin: 0 0 5px; color: var(--text); font-size: 15px; font-weight: 650; line-height: 1.5; }
