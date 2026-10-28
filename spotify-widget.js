@@ -1,6 +1,7 @@
 const nowPlaying = document.querySelector("#spotify-now");
 const recentButton = document.querySelector("#recent-toggle");
 const recentList = document.querySelector("#recently-played");
+let recentRefreshInFlight = false;
 
 function node(tag, className, text) {
   const element = document.createElement(tag);
@@ -85,10 +86,11 @@ function formatPlayedAt(value) {
   return Number.isNaN(date.valueOf()) ? "" : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
-async function loadRecentTracks() {
-  if (!recentList) return;
+async function loadRecentTracks(silent = false) {
+  if (!recentList || recentRefreshInFlight) return;
+  recentRefreshInFlight = true;
   recentList.hidden = false;
-  recentList.replaceChildren(node("p", "spotify-message", "Loading recent tracks…"));
+  if (!silent) recentList.replaceChildren(node("p", "spotify-message", "Loading recent tracks…"));
   try {
     const response = await fetch("/api/spotify/recently-played", { cache: "no-store" });
     const data = await response.json();
@@ -136,6 +138,8 @@ async function loadRecentTracks() {
     });
   } catch {
     recentList.replaceChildren(node("p", "spotify-message", "Recent listening history is temporarily unavailable."));
+  } finally {
+    recentRefreshInFlight = false;
   }
 }
 
@@ -148,4 +152,9 @@ recentButton?.addEventListener("click", async () => {
 });
 
 updateNowPlaying();
-window.setInterval(updateNowPlaying, 30_000);
+window.setInterval(() => {
+  updateNowPlaying();
+  if (recentButton?.getAttribute("aria-expanded") === "true") {
+    void loadRecentTracks(true);
+  }
+}, 30_000);
