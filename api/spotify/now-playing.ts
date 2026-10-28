@@ -1,7 +1,51 @@
 import { getSpotifyAccessToken, hasSpotifyRefreshToken, setResponseHeaders, spotifyReconnectRequired, type ApiRequest, type ApiResponse } from "./token";
+import { getStoredRecentTracks, hasRecentTrackStore, recordRecentTrack, type StoredTrack } from "./recent-store";
+
+function toStoredTrack(item: NonNullable<PlaybackState["item"]>, playedAt: string): StoredTrack {
+  const title = item.name ?? "Unknown track";
+  const artist = item.artists?.map((entry) => entry.name).filter(Boolean).join(", ")
+    || item.show?.name
+    || "Spotify";
+  const url = item.external_urls?.spotify ?? "https://open.spotify.com/";
+  return {
+    id: item.id ?? url,
+    title,
+    artist,
+    image: item.album?.images?.[0]?.url ?? item.show?.images?.[0]?.url ?? null,
+    url,
+    playedAt,
+  };
+}
+
+type PlaybackState = {
+  is_playing?: boolean;
+  progress_ms?: number | null;
+  item?: {
+    id?: string;
+    type?: string;
+    name?: string;
+    artists?: Array<{ name?: string }>;
+    show?: { name?: string; images?: Array<{ url?: string }> };
+    album?: { images?: Array<{ url?: string }> };
+    external_urls?: { spotify?: string };
+  } | null;
+};
 
 async function respondWithLastPlayed(token: string, res: ApiResponse): Promise<void> {
   try {
+    if (hasRecentTrackStore()) {
+      const [storedTrack] = await getStoredRecentTracks();
+      if (storedTrack) {
+        res.status(200).json({
+          status: "paused",
+          title: storedTrack.title,
+          artist: storedTrack.artist,
+          image: storedTrack.image,
+          url: storedTrack.url,
+        });
+        return;
+      }
+    }
     const response = await fetch("https://api.spotify.com/v1/me/player/recently-played?limit=1", {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -24,12 +68,21 @@ async function respondWithLastPlayed(token: string, res: ApiResponse): Promise<v
       res.status(200).json({ status: "idle" });
       return;
     }
-    res.status(200).json({
-      status: "paused",
+    const storedTrack: StoredTrack = {
+      id: track.external_urls?.spotify ?? track.name ?? "recent-track",
       title: track.name ?? "Unknown track",
       artist: track.artists?.map((artist) => artist.name).filter(Boolean).join(", ") ?? "Spotify",
       image: track.album?.images?.[0]?.url ?? null,
-      url: track.external_urls?.spotify ?? null,
+      url: track.external_urls?.spotify ?? "https://open.spotify.com/",
+      playedAt: new Date().toISOString(),
+    };
+    if (hasRecentTrackStore()) await recordRecentTrack(storedTrack);
+    res.status(200).json({
+      status: "paused",
+      title: storedTrack.title,
+      artist: storedTrack.artist,
+      image: storedTrack.image,
+      url: storedTrack.url,
     });
   } catch {
     res.status(200).json({ status: "idle" });
@@ -37,7 +90,7 @@ async function respondWithLastPlayed(token: string, res: ApiResponse): Promise<v
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
-  setResponseHeaders(res, 15);
+  setResponseHeaders(res, 5);
   if (req.method !== "GET") {
     res.status(405).json({ status: "error" });
     return;
@@ -65,19 +118,18 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       return;
     }
 
-    const state = (await response.json()) as {
-      is_playing?: boolean;
-      item?: {
-        name?: string;
-        artists?: Array<{ name?: string }>;
-        show?: { name?: string; images?: Array<{ url?: string }> };
-        album?: { images?: Array<{ url?: string }> };
-        external_urls?: { spotify?: string };
-      } | null;
-    };
+    const state = (await response.json()) as PlaybackState;
     if (!state.item) {
       await respondWithLastPlayed(token, res);
       return;
+    }
+
+    if (hasRecentTrackStore() && state.item.type !== "episode" && (state.progress_ms ?? 0) >= 10_000) {
+      try {
+        await recordRecentTrack(toStoredTrack(state.item, new Date().toISOString()));
+      } catch {
+        // Keep the live player working if recent-history storage is unavailable.
+      }
     }
 
     res.status(200).json({
