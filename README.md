@@ -1,2 +1,2 @@
-THIS IS MY PORTFOLIO - A SIMPLE HTML PAGE :clown_face:
+THIS IS MY PORTFOLIO - :clown_face:
 
