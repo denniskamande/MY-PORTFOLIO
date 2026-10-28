@@ -171,6 +171,9 @@
           <a href="https://github.com/denniskamande">GitHub</a>
         </div>
       </section>
+      <section class="spotify-history" id="spotify-history" aria-label="Recently played tracks" hidden>
+        <div class="recently-played" id="recently-played" hidden aria-live="polite"></div>
+      </section>
       <aside class="spotify-now" aria-label="Spotify listening status">
         <div class="spotify-heading-row">
           <h2 id="spotify-heading">Listening now</h2>
@@ -179,10 +182,9 @@
         <div class="spotify-card" id="spotify-now" aria-live="polite" aria-atomic="true">
           <p class="spotify-loading">Checking Spotify…</p>
         </div>
-        <button class="recent-toggle" id="recent-toggle" type="button" aria-expanded="false" aria-controls="recently-played">
+        <button class="recent-toggle" id="recent-toggle" type="button" aria-expanded="false" aria-controls="spotify-history">
           Recently played <span aria-hidden="true">⌃</span>
         </button>
-        <div class="recently-played" id="recently-played" hidden aria-live="polite"></div>
       </aside>
     </main>
   </body>
