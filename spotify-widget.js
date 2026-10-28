@@ -1,6 +1,5 @@
 const nowPlaying = document.querySelector("#spotify-now");
 const recentButton = document.querySelector("#recent-toggle");
-const recentPanel = document.querySelector("#spotify-history");
 const recentList = document.querySelector("#recently-played");
 let recentRefreshInFlight = false;
 
@@ -161,16 +160,8 @@ recentButton?.addEventListener("click", async () => {
   const open = recentButton.getAttribute("aria-expanded") !== "true";
   recentButton.setAttribute("aria-expanded", String(open));
   recentButton.querySelector("span")?.replaceChildren(document.createTextNode(open ? "−" : "＋"));
-  if (open) {
-    if (recentPanel) recentPanel.hidden = false;
-    await loadRecentTracks();
-    if (window.matchMedia("(min-width: 621px)").matches) {
-      recentPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  } else {
-    if (recentList) recentList.hidden = true;
-    if (recentPanel) recentPanel.hidden = true;
-  }
+  if (open) await loadRecentTracks();
+  else if (recentList) recentList.hidden = true;
 });
 
 updateNowPlaying();
