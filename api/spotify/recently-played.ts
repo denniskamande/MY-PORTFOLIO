@@ -56,6 +56,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       if (playbackResponse.ok) {
         const playback = (await playbackResponse.json()) as {
           is_playing?: boolean;
+          progress_ms?: number | null;
           item?: {
             name?: string;
             artists?: Array<{ name?: string }>;
@@ -64,7 +65,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
             external_urls?: { spotify?: string };
           } | null;
         };
-        if (playback.item) {
+        if (playback.item && (playback.progress_ms ?? 0) >= 10_000) {
           currentTrack = {
             title: playback.item.name ?? "Unknown track",
             artist: playback.item.artists?.map((artist) => artist.name).filter(Boolean).join(", ")

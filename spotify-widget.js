@@ -152,9 +152,9 @@ recentButton?.addEventListener("click", async () => {
 });
 
 updateNowPlaying();
+window.setInterval(updateNowPlaying, 30_000);
 window.setInterval(() => {
-  updateNowPlaying();
   if (recentButton?.getAttribute("aria-expanded") === "true") {
     void loadRecentTracks(true);
   }
-}, 30_000);
+}, 10_000);
