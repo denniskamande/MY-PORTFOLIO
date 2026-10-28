@@ -78,7 +78,7 @@ async function respondWithLastPlayed(token: string, res: ApiResponse): Promise<v
     };
     if (hasRecentTrackStore()) await recordRecentTrack(storedTrack);
     res.status(200).json({
-      status: "paused",
+      status: "last played",
       title: storedTrack.title,
       artist: storedTrack.artist,
       image: storedTrack.image,
@@ -133,7 +133,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     }
 
     res.status(200).json({
-      status: state.is_playing ? "playing" : "paused",
+      status: state.is_playing ? "playing" : "last played",
       title: state.item.name ?? "Unknown track",
       artist: state.item.artists?.map((artist) => artist.name).filter(Boolean).join(", ")
         || state.item.show?.name
