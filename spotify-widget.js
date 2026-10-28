@@ -1,7 +1,6 @@
 const nowPlaying = document.querySelector("#spotify-now");
 const recentButton = document.querySelector("#recent-toggle");
 const recentList = document.querySelector("#recently-played");
-let recentLoaded = false;
 
 function node(tag, className, text) {
   const element = document.createElement(tag);
@@ -89,7 +88,6 @@ function formatPlayedAt(value) {
 async function loadRecentTracks() {
   if (!recentList) return;
   recentList.hidden = false;
-  if (recentLoaded) return;
   recentList.replaceChildren(node("p", "spotify-message", "Loading recent tracks…"));
   try {
     const response = await fetch("/api/spotify/recently-played", { cache: "no-store" });
@@ -136,7 +134,6 @@ async function loadRecentTracks() {
       row.append(info, playedAt);
       recentList.append(row);
     });
-    recentLoaded = true;
   } catch {
     recentList.replaceChildren(node("p", "spotify-message", "Recent listening history is temporarily unavailable."));
   }

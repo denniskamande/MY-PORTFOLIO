@@ -1,7 +1,8 @@
 import { getSpotifyAccessToken, hasSpotifyRefreshToken, setResponseHeaders, spotifyReconnectRequired, type ApiRequest, type ApiResponse } from "./token";
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
-  setResponseHeaders(res, 30);
+  setResponseHeaders(res, 0);
+  res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") {
     res.status(405).json({ status: "error" });
     return;
