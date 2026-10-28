@@ -10,21 +10,40 @@ export type StoredTrack = {
 };
 
 const LIST_KEY = "portfolio:spotify:recently-played:v1";
-const SEED_SCRIPT = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  for i = 1, #ARGV do redis.call('LPUSH', KEYS[1], ARGV[i]) end
-  redis.call('LTRIM', KEYS[1], 0, 4)
-end
-return redis.call('LRANGE', KEYS[1], 0, 4)
-`;
-const RECORD_SCRIPT = `
-local first = redis.call('LINDEX', KEYS[1], 0)
-if not first or cjson.decode(first).id ~= ARGV[1] then
-  redis.call('LPUSH', KEYS[1], ARGV[2])
-  redis.call('LTRIM', KEYS[1], 0, 4)
-end
-return redis.call('LRANGE', KEYS[1], 0, 4)
-`;
+const RECORD_SCRIPT = [
+  "local first = redis.call('LINDEX', KEYS[1], 0)",
+  "if not first or cjson.decode(first).id ~= ARGV[1] then",
+  "  redis.call('LPUSH', KEYS[1], ARGV[2])",
+  "  redis.call('LTRIM', KEYS[1], 0, 4)",
+  "end",
+  "return redis.call('LRANGE', KEYS[1], 0, 4)",
+].join("\n");
+const MERGE_SCRIPT = [
+  "local tracks = {}",
+  "local byId = {}",
+  "local function add(serialized)",
+  "  local ok, track = pcall(cjson.decode, serialized)",
+  "  if not ok or not track or type(track.id) ~= 'string' then return end",
+  "  local index = byId[track.id]",
+  "  if not index then",
+  "    table.insert(tracks, track)",
+  "    byId[track.id] = #tracks",
+  "  elseif (track.playedAt or '') > (tracks[index].playedAt or '') then",
+  "    tracks[index] = track",
+  "  end",
+  "end",
+  "for _, serialized in ipairs(redis.call('LRANGE', KEYS[1], 0, -1)) do add(serialized) end",
+  "for _, serialized in ipairs(ARGV) do add(serialized) end",
+  "table.sort(tracks, function(a, b)",
+  "  local aTime, bTime = a.playedAt or '', b.playedAt or ''",
+  "  if aTime == bTime then return a.id < b.id end",
+  "  return aTime > bTime",
+  "end)",
+  "while #tracks > 5 do table.remove(tracks) end",
+  "redis.call('DEL', KEYS[1])",
+  "for _, track in ipairs(tracks) do redis.call('RPUSH', KEYS[1], cjson.encode(track)) end",
+  "return redis.call('LRANGE', KEYS[1], 0, 4)",
+].join("\n");
 
 function redisCredentials(): { url: string; token: string } | null {
   const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
@@ -40,10 +59,10 @@ async function execute(commands: unknown[][]): Promise<unknown[]> {
   const credentials = redisCredentials();
   if (!credentials) throw new Error("Recent track storage is not configured");
 
-  const response = await fetch(`${credentials.url}/multi-exec`, {
+  const response = await fetch(credentials.url + "/multi-exec", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${credentials.token}`,
+      Authorization: "Bearer " + credentials.token,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(commands),
@@ -75,9 +94,9 @@ export async function getStoredRecentTracks(): Promise<StoredTrack[]> {
   return parseTracks(result);
 }
 
-export async function seedRecentTracks(tracks: StoredTrack[]): Promise<StoredTrack[]> {
-  const ordered = [...tracks].reverse().map((track) => JSON.stringify(track));
-  const [result] = await execute([["EVAL", SEED_SCRIPT, 1, LIST_KEY, ...ordered]]);
+export async function mergeRecentTracks(tracks: StoredTrack[]): Promise<StoredTrack[]> {
+  const serializedTracks = tracks.map((track) => JSON.stringify(track));
+  const [result] = await execute([["EVAL", MERGE_SCRIPT, 1, LIST_KEY, ...serializedTracks]]);
   return parseTracks(result);
 }
 

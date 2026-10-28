@@ -1,5 +1,5 @@
 import { getSpotifyAccessToken, hasSpotifyRefreshToken, setResponseHeaders, spotifyReconnectRequired, type ApiRequest, type ApiResponse } from "./token";
-import { hasRecentTrackStore, recordRecentTrack, seedRecentTracks, type StoredTrack } from "./recent-store";
+import { hasRecentTrackStore, mergeRecentTracks, recordRecentTrack, type StoredTrack } from "./recent-store";
 
 function trackId(id: string | undefined, url: string | undefined, title: string, artist: string): string {
   return id ?? url ?? `${title.toLocaleLowerCase()}::${artist.toLocaleLowerCase()}`;
@@ -106,8 +106,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
     let tracks: Array<StoredTrack & { isCurrent?: true; currentStatus?: string }>;
     if (usePersistentHistory) {
-      let storedTracks = await seedRecentTracks(recentTracks);
-      if (currentTrack) storedTracks = await recordRecentTrack(currentTrack);
+      const storedTracks = await mergeRecentTracks(currentTrack ? [currentTrack, ...recentTracks] : recentTracks);
       tracks = storedTracks.map((track) => currentTrack && track.id === currentTrack.id
         ? { ...track, isCurrent: true, currentStatus: currentTrack.currentStatus }
         : track);

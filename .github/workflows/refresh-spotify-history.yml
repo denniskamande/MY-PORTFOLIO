@@ -1,0 +1,27 @@
+name: Refresh Spotify history
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spotify-history-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Refresh Spotify listening history
+        env:
+          SPOTIFY_CRON_SECRET: ${{ secrets.SPOTIFY_CRON_SECRET }}
+        run: |
+          test -n "$SPOTIFY_CRON_SECRET"
+          curl --fail --silent --show-error --max-time 30 \
+            --header "Authorization: Bearer $SPOTIFY_CRON_SECRET" \
+            https://kamande.vercel.app/api/spotify/refresh-history
