@@ -37,7 +37,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
         };
       }>;
     };
-    const tracks = (history.items ?? []).flatMap((item) => {
+    const recentTracks = (history.items ?? []).flatMap((item) => {
       if (!item.track) return [];
       return [{
         title: item.track.name ?? "Unknown track",
@@ -47,6 +47,47 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
         playedAt: item.played_at ?? "",
       }];
     });
+
+    let currentTrack: (typeof recentTracks)[number] & { isCurrent: true; currentStatus: string } | null = null;
+    try {
+      const playbackResponse = await fetch("https://api.spotify.com/v1/me/player", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (playbackResponse.ok) {
+        const playback = (await playbackResponse.json()) as {
+          is_playing?: boolean;
+          item?: {
+            name?: string;
+            artists?: Array<{ name?: string }>;
+            show?: { name?: string; images?: Array<{ url?: string }> };
+            album?: { images?: Array<{ url?: string }> };
+            external_urls?: { spotify?: string };
+          } | null;
+        };
+        if (playback.item) {
+          currentTrack = {
+            title: playback.item.name ?? "Unknown track",
+            artist: playback.item.artists?.map((artist) => artist.name).filter(Boolean).join(", ")
+              || playback.item.show?.name
+              || "Spotify",
+            image: playback.item.album?.images?.[0]?.url ?? playback.item.show?.images?.[0]?.url ?? null,
+            url: playback.item.external_urls?.spotify ?? "https://open.spotify.com/",
+            playedAt: "",
+            isCurrent: true,
+            currentStatus: playback.is_playing ? "Now playing" : "Paused",
+          };
+        }
+      }
+    } catch {
+      // Keep the recent-history results if the current playback request fails.
+    }
+
+    const previousTracks = currentTrack
+      ? recentTracks.filter((track) => track.title !== currentTrack?.title || track.artist !== currentTrack?.artist)
+      : recentTracks;
+    const tracks = currentTrack
+      ? [currentTrack, ...previousTracks.slice(0, 4)]
+      : recentTracks.slice(0, 5);
     res.status(200).json({ status: "ok", tracks });
   } catch {
     res.status(200).json({ status: "unavailable", tracks: [] });

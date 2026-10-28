@@ -114,7 +114,7 @@ async function loadRecentTracks(silent = false) {
     if (data.tracks.length === 0) {
       recentList.append(node("p", "spotify-message", "No recent tracks to show."));
     }
-    recentList.append(node("p", "recent-heading", "Last 5 played"));
+    recentList.append(node("p", "recent-heading", data.tracks[0]?.isCurrent ? "Current + 4 recent" : "Last 5 played"));
     data.tracks.forEach((track) => {
       const row = node("div", "recent-track");
       if (track.image) {
@@ -131,7 +131,7 @@ async function loadRecentTracks(silent = false) {
       info.target = "_blank";
       info.rel = "noreferrer";
       info.append(node("strong", "", track.title), node("small", "", track.artist));
-      const playedAt = node("time", "recent-time", formatPlayedAt(track.playedAt));
+      const playedAt = node("time", "recent-time", track.isCurrent ? track.currentStatus : formatPlayedAt(track.playedAt));
       if (track.playedAt) playedAt.dateTime = track.playedAt;
       row.append(info, playedAt);
       recentList.append(row);
