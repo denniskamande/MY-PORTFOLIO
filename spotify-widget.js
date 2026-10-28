@@ -83,7 +83,20 @@ async function updateNowPlaying() {
 
 function formatPlayedAt(value) {
   const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? "" : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  if (Number.isNaN(date.valueOf())) return "";
+
+  const elapsedSeconds = Math.floor((Date.now() - date.valueOf()) / 1000);
+  if (elapsedSeconds < 60) return "Just now";
+
+  const units = [
+    [604800, "week"],
+    [86400, "day"],
+    [3600, "hour"],
+    [60, "minute"],
+  ];
+  const [secondsPerUnit, unit] = units.find(([seconds]) => elapsedSeconds >= seconds);
+  const amount = Math.floor(elapsedSeconds / secondsPerUnit);
+  return new Intl.RelativeTimeFormat(undefined, { numeric: "always" }).format(-amount, unit);
 }
 
 async function loadRecentTracks(silent = false) {
