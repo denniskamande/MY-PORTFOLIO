@@ -171,8 +171,8 @@ li+li { margin-top: 4px; }
 /* Floating Spotify dock */
 .page{padding-bottom:160px}
 .spotify-now{
-  position:fixed;right:16px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
-  width:75vw;margin:0;
+  position:fixed;left:50%;right:auto;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
+  width:75vw;margin:0;transform:translateX(-50%);
   display:grid;grid-template-columns:minmax(0,1fr) 122px;align-items:center;gap:14px;
   padding:8px 14px;border:1px solid color-mix(in srgb,var(--line) 80%,transparent);
   border-radius:13px;background:color-mix(in srgb,var(--surface) 91%,transparent);
@@ -212,7 +212,7 @@ li+li { margin-top: 4px; }
 .recent-time{font-size:11px}
 @media(max-width:620px){
   .page{padding-bottom:154px}
-  .spotify-now{left:auto;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));width:min(390px,calc(100vw - 24px));grid-template-columns:minmax(0,1fr) 112px;gap:8px;padding:8px 10px;border-radius:12px}
+  .spotify-now{left:auto;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));width:min(390px,calc(100vw - 24px));margin:0;transform:none;grid-template-columns:minmax(0,1fr) 112px;gap:8px;padding:8px 10px;border-radius:12px}
   .spotify-card{grid-template-columns:44px minmax(0,1fr);gap:9px}
   .spotify-cover{width:44px;height:44px}
   .spotify-open{display:none}
